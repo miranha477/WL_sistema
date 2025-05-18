@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Whitelist RP - 21 Perguntas</title>
+  <style>
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #formContainer {
+      background-color: #1a1a1a;
+      padding: 30px;
+      border-radius: 16px;
+      width: 95%;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,255,128,0.2);
+      animation: fadeIn 1s ease-in-out;
+    }
+    input, textarea, select {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      background: #333;
+      color: #fff;
+    }
+    button {
+      background-color: #00cc66;
+      color: white;
+      padding: 12px 28px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      animation: pulse 1.5s infinite;
+    }
+    button:hover {
+      background-color: #00aa55;
+      transform: scale(1.05);
+    }
+    .fase {
+      opacity: 1;
+      transition: opacity 0.5s ease;
+      position: relative;
+    }
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 204, 102, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 10px 10px rgba(0, 204, 102, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 204, 102, 0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="formContainer"></div>
+
+  <script>
+    const perguntas = [
+      "qual e seu Discord?",
+      "O que significa RDM?",
+      "O que significa VDM?",
+      "O que é PowerGaming?",
+      "O que é MetaGaming?",
+      "Você entende que é proibido usar informações de fora do RP?",
+      "Qual punição para uso de cheat/hack?",
+      "Você pode falar em voz fora do personagem durante o RP?",
+      "É permitido revenge kill (voltar para se vingar)?",
+      "Você entende que precisa respeitar todos os players?",
+      "É permitido desrespeitar staff?",
+      "Você pode deslogar para fugir de situação?",
+      "Como agir se alguém quebrar regra com você?",
+      "É permitido ameaçar staff fora do jogo?",
+      "É permitido fazer roleplay de menor de idade em ações criminosas?",
+      "Se alguém te xingar no RP, o que você faz?",
+      "Você entende que precisa usar bom senso sempre?",
+      "Você pode forçar outro player a aceitar ações ilegais sem chance de reação?",
+      "Você pode usar bug para benefício próprio?",
+      "Você pode andar armado sem coerência?",
+      "Você confirma que quer fazer parte do servidor e respeitar as regras?"
+    ];
+
+    let respostas = [];
+
+    const container = document.getElementById("formContainer");
+
+    perguntas.forEach((pergunta, i) => {
+      const div = document.createElement("div");
+      div.id = `fase${i}`;
+      div.className = "fase" + (i > 0 ? " hidden" : "");
+      div.innerHTML = `
+        <h3>${i + 1}. ${pergunta}</h3>
+        <textarea id="q${i}" rows="3"></textarea><br>
+        <button onclick="next(${i + 1})">${i === perguntas.length - 1 ? "Enviar" : "Próxima"}</button>
+      `;
+      container.appendChild(div);
+    });
+
+    const sucesso = document.createElement("div");
+    sucesso.id = "sucesso";
+    sucesso.className = "hidden";
+    sucesso.innerHTML = `<h3>Respostas enviadas com sucesso!</h3><p>Aguarde ser aprovado no Discord.</p>`;
+    container.appendChild(sucesso);
+
+    function next(faseAtual) {
+      const index = faseAtual - 1;
+      const input = document.getElementById(`q${index}`);
+      const resposta = input ? input.value.trim() : null;
+      if (!resposta) return alert("Responda antes de continuar!");
+
+      respostas[index] = resposta;
+
+      const atual = document.getElementById(`fase${index}`);
+      const proxima = document.getElementById(`fase${faseAtual}`);
+
+      atual.style.opacity = 0;
+      setTimeout(() => {
+        atual.classList.add("hidden");
+        if (proxima) {
+          proxima.classList.remove("hidden");
+          proxima.style.opacity = 0;
+          setTimeout(() => proxima.style.opacity = 1, 50);
+        } else {
+          enviarRespostas();
+        }
+      }, 300);
+    }
+
+    function enviarRespostas() {
+      const webhookURL = "https://discord.com/api/webhooks/1373440790444904488/Rhmnfjy-Ry1-55Akn8g2v54kpagY0gDHs5CtnemqETmJJAs5v3Lw8vYwQmGchAMIdL3E";
+
+      const fields = respostas.map((res, i) => ({
+        name: `**${i + 1}. ${perguntas[i]}**`,
+        value: res || "Não respondido"
+      }));
+
+      const payload = {
+        content: "**📋 Nova Whitelist Recebida!**",
+        embeds: [{
+          title: "Respostas do Formulário de Whitelist",
+          color: 0x00cc66,
+          fields,
+          footer: { text: "Sistema de Whitelist Automático" },
+          timestamp: new Date()
+        }]
+      };
+
+      fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).then(() => {
+        document.getElementById(`fase${respostas.length - 1}`).classList.add("hidden");
+        document.getElementById("sucesso").classList.remove("hidden");
+      }).catch(() => {
+        alert("Erro ao enviar. Verifique o webhook.");
+      });
+    }
+
+    // Apagar tudo se sair
+    window.onbeforeunload = () => true;
+  </script>
+</body>
+</html>
